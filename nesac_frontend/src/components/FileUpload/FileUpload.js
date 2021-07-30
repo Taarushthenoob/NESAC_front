@@ -42,18 +42,24 @@ const FileUpload = () => {
         const formData = new FormData();
         
         const gantImage = document.getElementById('gant') ;
-        const gantTensor = tf.browser.fromPixels(gantImage).resizeBilinear([299,299]) ;
+        const gantTensor = tf.browser.fromPixels(gantImage) ;
         console.log( 
         `Successful conversion from DOM to a ${gantTensor.shape} tensor`
         );
         const newSize= [299, 299];
-        // const finalTensor = tf.image.resizeBilinear( 
-        //     gantTensor,
-        //     newSize,
-        //     true 
-        // )
-        
-        formData.append('imgtensor', gantTensor);
+        let finalTensor = tf.image.resizeNearestNeighbor( 
+            gantTensor,
+            newSize,
+            true 
+        )
+        console.log( 
+        `Successful conversion from DOM to a ${finalTensor.shape} tensor`
+        );
+        finalTensor= finalTensor.reshape([-1]);
+        const values= finalTensor.dataSync();
+        let finalArray=Array.from(values);
+        console.log(finalArray);
+        formData.append('imgtensor', finalArray);
         setClassifying(true);
 
         try {
