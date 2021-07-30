@@ -4,6 +4,7 @@ const fs = require('fs');
 const path = require('path');
 const axios= require('axios');
 const cors = require('cors');
+const bodyParser = require('body-parser')
 //import * as tf from '@tensorflow/tfjs-node';
 const ImgClassify = require('./ImgClassify');
 const SampleZeroes= Array(299*299*3).fill(0);
@@ -11,6 +12,10 @@ const SampleZeroes= Array(299*299*3).fill(0);
 const app = express();
 
 app.use(cors());
+app.use(express.urlencoded({ 
+     extended: true 
+}));
+app.use(express.json());
 app.use(fileUpload());
 
 app.post('/upload', (req,res) => {
@@ -37,7 +42,7 @@ app.post('/upload', (req,res) => {
             console.log(err);
             return res.status(500).send(err);
         }
-
+        
         res.json({fileName: file.name, filePath: `/uploads/${file.name}` });
     });
 
@@ -60,13 +65,16 @@ app.post('/upload', (req,res) => {
 
 app.post('/classify', (req,res) => {
 
-  if(req.files== null)
-    {
-        return res.status(400).json({ msg: "No file uploaded." });
-    }
-    const file = req.files.file;
-    let extName = path.extname(file.name);
-    const result={};
+  // if(req.files== null)
+  //   {
+  //       return res.status(400).json({ msg: "No file uploaded." });
+  //   }
+    // const file = req.files.file;
+    // let extName = path.extname(file.name);
+   //  const result={};
+
+   const tensor1= req.body.imgtensor;
+   console.log(tensor1);
   axios.post('http://localhost:8000/v2/models/inception_graphdef/versions/1/infer', {
               
                         "id":"01", 
@@ -76,7 +84,7 @@ app.post('/classify', (req,res) => {
                             "shape":[1,299,299,3], 
                             "datatype":"FP32",  
                             "data":[
-                                SampleZeroes
+                                tensor1
                             ]
                         }], 
                         "outputs":[ {

@@ -5,6 +5,7 @@ import Message from '../Message/Message'
 import Form from 'react-bootstrap/Form'
 import { Upload, Button, notification } from 'antd';
 import { UploadOutlined } from '@ant-design/icons';
+import * as tf from '@tensorflow/tfjs';
 import 'antd/dist/antd.css';
 import { SampleZeroes } from './samleZeroes';
 import Classifications from './Classifications';
@@ -39,7 +40,20 @@ const FileUpload = () => {
     const ClassifyImg= async e => {
         e.preventDefault();
         const formData = new FormData();
-        formData.append('file', file);
+        
+        const gantImage = document.getElementById('gant') ;
+        const gantTensor = tf.browser.fromPixels(gantImage).resizeBilinear([299,299]) ;
+        console.log( 
+        `Successful conversion from DOM to a ${gantTensor.shape} tensor`
+        );
+        const newSize= [299, 299];
+        // const finalTensor = tf.image.resizeBilinear( 
+        //     gantTensor,
+        //     newSize,
+        //     true 
+        // )
+        
+        formData.append('imgtensor', gantTensor);
         setClassifying(true);
 
         try {
@@ -259,7 +273,7 @@ const FileUpload = () => {
                 <div className="row mt-5">
                     <div className='col-md-6 m-auto'>
                         <h4 className='text-center'> {uploadedFile.fileName}</h4>
-                        <img style={{width: '100%'}} src={uploadedFile.filePath} alt='' />
+                        <img id='gant' style={{width: '100%'}} src={uploadedFile.filePath} alt='' />
                     </div>
                 </div>
                 ) : null}
