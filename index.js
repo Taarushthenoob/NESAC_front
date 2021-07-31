@@ -74,7 +74,10 @@ app.post('/classify', (req,res) => {
    //  const result={};
 
    const tensor1= req.body.imgtensor;
-   console.log(tensor1);
+   console.log(typeof(tensor1));
+   let finTensor= tensor1.split(',').map((item)=> {
+     return parseInt(item,10);
+   });
   axios.post('http://localhost:8000/v2/models/inception_graphdef/versions/1/infer', {
               
                         "id":"01", 
@@ -84,7 +87,7 @@ app.post('/classify', (req,res) => {
                             "shape":[1,299,299,3], 
                             "datatype":"FP32",  
                             "data":[
-                                tensor1
+                                finTensor
                             ]
                         }], 
                         "outputs":[ {
@@ -105,6 +108,7 @@ app.post('/classify', (req,res) => {
             .then(resp => {
                 console.log(`statusCode: ${resp.statusCode}`);
                 console.log(resp.data.outputs[0]);
+                //console.log(resp);
                 res.send(resp.data.outputs[0]);
               })
               .catch(error => {
