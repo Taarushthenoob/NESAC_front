@@ -15,6 +15,7 @@ const { SubMenu } = Menu;
 function App() {
 
   const [collapsed,setCollapsed]= useState(false);
+  const [func, setFunc]= useState("ic");
 
   const onCollapse = () => {
     setCollapsed(!collapsed);
@@ -25,11 +26,11 @@ function App() {
     <Layout style={{ minHeight: '100vh', maxWidth: '100vw', overflowX: 'hidden' }}>
         <Sider collapsible collapsed={collapsed} onCollapse={onCollapse}>
           <div className="logo" />
-          <Menu theme="dark" defaultSelectedKeys={['1']} mode="inline">
-            <Menu.Item key="1" icon={<PieChartOutlined />}>
+          <Menu theme="dark" defaultSelectedKeys={['2']} mode="inline">
+            <Menu.Item key="1" icon={<PieChartOutlined />} onClick={()=>{setFunc("ss");}}>
               Semantic Image Segmentation
             </Menu.Item>
-            <Menu.Item key="2" icon={<PieChartOutlined />}>
+            <Menu.Item key="2" icon={<PieChartOutlined />} onClick={()=>{setFunc("ic");}}>
               Image Classification
             </Menu.Item>
             
@@ -55,7 +56,7 @@ function App() {
               Image Processing NESAC
             </h3>
             
-            <FileUpload />
+            <FileUpload func={func}/>
           
           <Footer style={{ textAlign: 'center' }}>PS1 NESAC ML/DL team</Footer>
           </div>

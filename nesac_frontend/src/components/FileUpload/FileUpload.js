@@ -10,7 +10,7 @@ import 'antd/dist/antd.css';
 import { SampleZeroes } from './samleZeroes';
 import Classifications from './Classifications';
 
-const FileUpload = () => {
+const FileUpload = ({func}) => {
     const [file, setFile]= useState(null);
     const [fileName, setFileName]= useState('No file chosen');
     const [uploadedFile, setUploadedFile]= useState({});
@@ -37,6 +37,64 @@ const FileUpload = () => {
     //     return false;
     // };
 
+    const SemanticImg= async e => {
+        e.preventDefault();
+        const formData = new FormData();
+        
+        const gantImage = document.getElementById('gant') ;
+        const gantTensor = tf.browser.fromPixels(gantImage) ;
+        console.log( 
+        `Successful conversion from DOM to a ${gantTensor.shape} tensor`
+        );
+        const newSize= [299, 299];
+        let finalTensor = tf.image.resizeBilinear( 
+            gantTensor,
+            newSize,
+            true 
+        )
+        console.log( 
+        `Successful conversion from DOM to a ${finalTensor.shape} tensor`
+        );
+        finalTensor= finalTensor.reshape([-1]);
+        const values= finalTensor.dataSync();
+        let finalArray=Array.from(values);
+        console.log(finalArray);
+        formData.append('imgtensor', finalArray);
+        setClassifying(true);
+
+        try {
+            const res = await axios.post('/segment', formData, {
+                headers: {
+                    'Content-Type': 'multi-part/form-data'
+                }
+                });
+
+            
+
+            setOutdata(res.data);
+            setClassifying(false);
+                setGotData(true);
+            openNotificationWithIcon("success", "Top 5 classifications are shown");
+            
+        } catch(err) {
+            if(err.statusCode=== 500) {
+                setClassifying(false);
+                openNotificationWithIcon("error", "There was a problem with the Inference server. Try again after a while.");
+            } else {
+                setClassifying(false);
+                openNotificationWithIcon("error", "F");
+            }
+
+        }
+
+        return false;
+
+    };
+
+
+
+
+
     const ClassifyImg= async e => {
         e.preventDefault();
         const formData = new FormData();
@@ -47,7 +105,7 @@ const FileUpload = () => {
         `Successful conversion from DOM to a ${gantTensor.shape} tensor`
         );
         const newSize= [299, 299];
-        let finalTensor = tf.image.resizeNearestNeighbor( 
+        let finalTensor = tf.image.resizeBilinear( 
             gantTensor,
             newSize,
             true 
@@ -139,6 +197,7 @@ const FileUpload = () => {
         e.preventDefault();
         const formData = new FormData();
         formData.append('file', file);
+        formData.append('func',func);
         setUploading(true);
 
         try {
@@ -166,49 +225,6 @@ const FileUpload = () => {
 
         }
 
-        // try {
-        //     const res = await axios.post('http://localhost:8000/v2/models/inception_graphdef/versions/1/infer',  {
-        //         headers: {
-        //             'Content-Type': 'application/json',
-        //             "Access-Control-Allow-Origin": '*',
-        //             "Access-Control-Allow-Headers": "Origin, X-Requested-With, Content-Type, Accept"
-        //         },
-        //         body: {
-        //                 "id":"01", 
-        //                 "inputs": 
-        //                 [{
-        //                     "name":"input", 
-        //                     "shape":[2,299,299,3], 
-        //                     "datatype":"FP32",  
-        //                     "data":[
-        //                         SampleZeroes, SampleZeroes
-        //                     ]
-        //                 }], 
-        //                 "outputs":[ {
-        //                     "name":"InceptionV3/Predictions/Softmax", 
-        //                     "parameters": {"classification" : 5}
-        //                 }, {
-        //                     "name":"InceptionV3/Predictions/Softmax", 
-        //                     "parameters": {"classification" : 5}
-        //                 }] 
-        //         }
-        //         }
-        //     );
-
-        //     console.log(res);
-
-        //     openNotificationWithIcon("success", "Inference received from localhost:8000");
-            
-        // } catch(err) {
-        //     if(err.status=== 500) {
-        //         setUploading(false);
-        //         openNotificationWithIcon("error", "There was a problem with the Inference server. Try again after a while.");
-        //     } else {
-        //         setUploading(false);
-        //         openNotificationWithIcon("error", "F");
-        //     }
-
-        // }
         return false;
 
     };
@@ -259,7 +275,7 @@ const FileUpload = () => {
                         </Upload>
                     </Space> */}
                     <Upload  {...props} maxCount={1}>
-                        <Button icon={<UploadOutlined />}>Select File</Button>
+                        <Button icon={<UploadOutlined />}>{func==="ic"?"Select File [.jpg & .png only]":"Select File [.tif only]"}</Button>
                     </Upload>
                     <Button
                         type="submit"
@@ -283,7 +299,8 @@ const FileUpload = () => {
                     </div>
                 </div>
                 ) : null}
-                <Button
+                {
+                    func==="ic"? <><Button
                         type="submit"
                         onClick={ClassifyImg}
                         disabled={file === null}
@@ -292,16 +309,40 @@ const FileUpload = () => {
                         >
                         {classifying ? 'Getting data...' : 'Run Image Classification'}
                     </Button>
-                {
-                    gotData? (
-                        <div className="row mt-5">
-                    <div className='col-md-6 m-auto'>
-                        <h4 className='text-center'> Top 5 classifications with probability</h4>
-                        <Classifications data={outdata} />
-                    </div>
-                </div>
-                    ): null
+                    {
+                        gotData? (
+                            <div className="row mt-5">
+                        <div className='col-md-6 m-auto'>
+                            <h4 className='text-center'> Top 5 classifications with probability</h4>
+                            <Classifications data={outdata} />
+                        </div>
+                        </div>
+                        ): null
+                    }
+                    </> :
+                    <>
+                    <Button
+                        type="submit"
+                        onClick={SemanticImg}
+                        disabled={file === null}
+                        loading={classifying}
+                        style={{ marginTop: 16 }}
+                        >
+                        {classifying ? 'Getting data...' : 'Run Semantic Segmentation'}
+                    </Button>
+                    {
+                        gotData? (
+                            <div className="row mt-5">
+                        <div className='col-md-6 m-auto'>
+                            <h4 className='text-center'> Top 5 classifications with probability</h4>
+                            <Classifications data={outdata} />
+                        </div>
+                        </div>
+                        ): null
+                    }
+                    </>
                 }
+                
 
                
             
