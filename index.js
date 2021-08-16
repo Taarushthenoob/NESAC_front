@@ -58,14 +58,15 @@ app.post('/upload', (req,res) => {
     //ImgClassify({});
 
     axios
-  .get('http://localhost:8000/v2/models/inception_graphdef/versions/1/ready', {})
-  .then(res => {
-    console.log(`statusCode: ${res.status}`)
-    console.log(res)
-  })
-  .catch(error => {
-    console.log(error)
-  })
+//   .get('http://localhost:8000/v2/models/inception_graphdef/versions/1/ready', {})
+//   .then(res => {
+//     console.log(`statusCode: ${res.status}`)
+//     console.log(res)
+//   })
+//   .catch(error => {
+//     console.log(error)
+//   })
+/*** REMOVED DUE TO ERROR IN LINUX ****/
 
   
 
